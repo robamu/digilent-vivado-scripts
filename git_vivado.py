@@ -17,7 +17,18 @@ def main():
     script_dir = os.path.dirname(os.path.abspath(sys.argv[0]))
     project_name = os.path.basename(os.path.abspath(os.path.join(script_dir, "..")))
     config = configparser.ConfigParser()
-    config.read(os.path.join(script_dir, "config.ini"))
+    # config.ini file is project folder takes precedence
+    if os.path.exists(os.path.abspath(os.path.join(script_dir, "../config.ini"))):
+        cfg_file = os.path.abspath(os.path.join(script_dir, "../config.ini"))
+    elif os.path.exists(os.path.join(script_dir, "config.ini")):
+        cfg_file = os.path.join(script_dir, "config.ini")
+    else:
+        print(
+            "No config.ini file detected. Please make sure that "
+            "a config.ini file exists in the same folder or one folder above"
+        )
+        sys.exit()
+    config.read(cfg_file)
     operating_system = platform.system()
     config_settings = config[operating_system]
 
