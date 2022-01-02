@@ -9,6 +9,10 @@ import platform
 import shutil
 
 
+DEBUG_NO_VIVADO = False
+DEBUG_VIVADO_TCL_TRACE = False
+
+
 def main():
     # Parse CONFIG.INI
     script_dir = os.path.dirname(os.path.abspath(sys.argv[0]))
@@ -126,7 +130,6 @@ def main():
             or os.path.isdir(funcargs["xpr_path"])
         ):
             xpr_folder = os.path.dirname(args.xpr_path)
-            # TODO: add clean and overwrite process
             # TODO: move project_info.tcl to repo root
             print("Error: cannot check out repo when project exists.")
             if not args.force:
@@ -151,8 +154,6 @@ def main():
     if hasattr(args, "temp_directory"):
         funcargs["temp_directory"] = args.temp_directory
 
-    DEBUG_NO_VIVADO = False
-    DEBUG_VIVADO_TCL_TRACE = False
     funcargs["DEBUG_NO_VIVADO"] = DEBUG_NO_VIVADO
     funcargs["DEBUG_VIVADO_TCL_TRACE"] = DEBUG_VIVADO_TCL_TRACE
 
