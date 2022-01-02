@@ -9,7 +9,6 @@ import platform
 import shutil
 
 
-DRY_RUN = False
 DEBUG_VIVADO_TCL_TRACE = False
 
 
@@ -39,6 +38,13 @@ def main():
         default=False,
         action="store_true",
         help="Force overwrite of existing files and folders",
+    )
+    parser.add_argument(
+        "-d",
+        dest="dry_run",
+        default=False,
+        action="store_true",
+        help="Dry run. Display command which will be run without running it",
     )
     subparsers = parser.add_subparsers(help="sub-command help")
 
@@ -106,13 +112,12 @@ def main():
     args = parser.parse_args()
 
     funcargs = {"script_dir": script_dir}
+    funcargs["DRY_RUN"] = args.dry_run
+    funcargs["force"] = args.force
 
     if not hasattr(args, "func"):
         print("Please select a subcommand to execute. See this command's help page")
         sys.exit()
-
-    if hasattr(args, "force"):
-        funcargs["force"] = args.force
 
     if hasattr(args, "repo_path"):
         funcargs["repo_path"] = os.path.abspath(
@@ -126,8 +131,11 @@ def main():
         funcargs["xpr_path"] = os.path.abspath(os.path.join(os.getcwd(), args.xpr_path))
         if (
             args.func == do_checkout
-            and os.path.isfile(funcargs["xpr_path"])
-            or os.path.isdir(funcargs["xpr_path"])
+            and (
+                os.path.isfile(funcargs["xpr_path"])
+                or os.path.isdir(funcargs["xpr_path"])
+            )
+            and not args.dry_run
         ):
             xpr_folder = os.path.dirname(args.xpr_path)
             # TODO: move project_info.tcl to repo root
@@ -154,7 +162,6 @@ def main():
     if hasattr(args, "temp_directory"):
         funcargs["temp_directory"] = args.temp_directory
 
-    funcargs["DRY_RUN"] = DRY_RUN
     funcargs["DEBUG_VIVADO_TCL_TRACE"] = DEBUG_VIVADO_TCL_TRACE
 
     args.func(funcargs)
@@ -176,7 +183,6 @@ def accept_warning(s):
 
 
 def do_checkin(args):
-    DRY_RUN = args["DRY_RUN"]
     DEBUG_VIVADO_TCL_TRACE = args["DEBUG_VIVADO_TCL_TRACE"]
 
     vivado_cmd = args["vivado_cmd"].replace("\\", "/")
@@ -198,22 +204,20 @@ def do_checkin(args):
         % (os.path.basename(xpr_path), os.path.basename(repo_path))
     )
 
-    if DRY_RUN:
+    notrace = "" if DEBUG_VIVADO_TCL_TRACE else " -notrace"
+    cmd = f"{vivado_cmd} -mode batch -source {script_path}{notrace} -tclargs -x {xpr_path} -r {repo_path} -v {version}"
+    if args["DRY_RUN"]:
         print("vivado_cmd: %s" % vivado_cmd)
         print("script_path: %s" % script_path)
         print("xpr_path: %s" % xpr_path)
         print("repo_path: %s" % repo_path)
         print("version: %s" % version)
+        print(f"Executed checking command: {cmd}")
     else:
-        notrace = "" if DEBUG_VIVADO_TCL_TRACE else " -notrace"
-        os.system(
-            "%s -mode batch -source %s%s -tclargs -x %s -r %s -v %s"
-            % (vivado_cmd, script_path, notrace, xpr_path, repo_path, version)
-        )
+        os.system(cmd)
 
 
 def do_checkout(args):
-    DRY_RUN: = args["DRY_RUN"]
     DEBUG_VIVADO_TCL_TRACE = args["DEBUG_VIVADO_TCL_TRACE"]
 
     vivado_cmd = args["vivado_cmd"].replace("\\", "/")
@@ -244,13 +248,13 @@ def do_checkout(args):
         repo_path,
         version,
     )
-    if DRY_RUN:
+    if args["DRY_RUN"]:
         print("vivado_cmd: %s" % vivado_cmd)
         print("script_path: %s" % script_path)
         print("xpr_path: %s" % xpr_path)
         print("repo_path: %s" % repo_path)
         print("version: %s" % version)
-        print(cmd)
+        print(f"Executed checkout command: {cmd}")
     else:
         os.system(cmd)
 
