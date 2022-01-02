@@ -9,7 +9,7 @@ import platform
 import shutil
 
 
-DEBUG_NO_VIVADO = False
+DRY_RUN = False
 DEBUG_VIVADO_TCL_TRACE = False
 
 
@@ -154,7 +154,7 @@ def main():
     if hasattr(args, "temp_directory"):
         funcargs["temp_directory"] = args.temp_directory
 
-    funcargs["DEBUG_NO_VIVADO"] = DEBUG_NO_VIVADO
+    funcargs["DRY_RUN"] = DRY_RUN
     funcargs["DEBUG_VIVADO_TCL_TRACE"] = DEBUG_VIVADO_TCL_TRACE
 
     args.func(funcargs)
@@ -176,7 +176,7 @@ def accept_warning(s):
 
 
 def do_checkin(args):
-    DEBUG_NO_VIVADO = args["DEBUG_NO_VIVADO"]
+    DRY_RUN = args["DRY_RUN"]
     DEBUG_VIVADO_TCL_TRACE = args["DEBUG_VIVADO_TCL_TRACE"]
 
     vivado_cmd = args["vivado_cmd"].replace("\\", "/")
@@ -198,7 +198,7 @@ def do_checkin(args):
         % (os.path.basename(xpr_path), os.path.basename(repo_path))
     )
 
-    if DEBUG_NO_VIVADO:
+    if DRY_RUN:
         print("vivado_cmd: %s" % vivado_cmd)
         print("script_path: %s" % script_path)
         print("xpr_path: %s" % xpr_path)
@@ -213,7 +213,7 @@ def do_checkin(args):
 
 
 def do_checkout(args):
-    DEBUG_NO_VIVADO = args["DEBUG_NO_VIVADO"]
+    DRY_RUN: = args["DRY_RUN"]
     DEBUG_VIVADO_TCL_TRACE = args["DEBUG_VIVADO_TCL_TRACE"]
 
     vivado_cmd = args["vivado_cmd"].replace("\\", "/")
@@ -244,7 +244,7 @@ def do_checkout(args):
         repo_path,
         version,
     )
-    if DEBUG_NO_VIVADO:
+    if DRY_RUN:
         print("vivado_cmd: %s" % vivado_cmd)
         print("script_path: %s" % script_path)
         print("xpr_path: %s" % xpr_path)
